@@ -38,7 +38,7 @@
   --sidebar-primary: 210 40% 98%;
   --sidebar-primary-foreground: 222 47% 11%;
   --sidebar-accent: 215 20.2% 65.1%;
-  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-border: 217.2 32.6% 17.5%;
   --sidebar-ring: 215 20.2% 65.1%;
 }
@@ -186,7 +186,7 @@
   .fade-right-hidden {
     transition: opacity 0.4s ease-out, transform 0.4s ease-out;
   }
-  
+
   /* Mobile hero section adjustments */
   .swiper-button-next,
   .swiper-button-prev {
@@ -194,15 +194,15 @@
     top: auto !important;
     bottom: 10% !important;
   }
-  
+
   .swiper-button-prev {
     left: 5% !important;
   }
-  
+
   .swiper-button-next {
     right: 5% !important;
   }
-  
+
   .swiper-pagination {
     bottom: 5% !important;
   }
@@ -262,32 +262,41 @@
 
 /* Enhanced digital animations */
 .digital-grid-animation {
+  background-size: 50px 50px;
   background-image: 
-    linear-gradient(rgba(0, 120, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 120, 255, 0.03) 1px, transparent 1px);
-  background-size: 30px 30px;
-  background-position: center center;
-  animation: moveGrid 25s linear infinite;
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  animation: pulseGrid 4s ease-in-out infinite;
+}
+
+@keyframes pulseGrid {
+  0%, 100% {
+    background-size: 50px 50px;
+    opacity: 0.5;
+  }
+  50% {
+    background-size: 55px 55px;
+    opacity: 0.3;
+  }
+}
+
+.hero-content {
   position: relative;
+  z-index: 2;
+  backdrop-filter: blur(5px);
+  animation: fadeInUp 1s ease-out;
 }
 
-.digital-grid-animation::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
-  pointer-events: none;
-}
-
-@keyframes moveGrid {
-  0% {
-    background-position: 0 0;
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  100% {
-    background-position: 30px 30px;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
-
 /* Add smooth transitions */
 .fade-in-visible {
   animation: smoothFadeIn 0.8s ease-out forwards;
