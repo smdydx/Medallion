@@ -260,14 +260,23 @@
   font-size: 20px !important;
 }
 
-/* Digital grid animation */
+/* Enhanced digital animations */
 .digital-grid-animation {
   background-image: 
-    linear-gradient(rgba(0, 0, 0, 0.01) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.01) 1px, transparent 1px);
-  background-size: 20px 20px;
+    linear-gradient(rgba(0, 120, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 120, 255, 0.03) 1px, transparent 1px);
+  background-size: 30px 30px;
   background-position: center center;
-  animation: moveGrid 20s linear infinite;
+  animation: moveGrid 25s linear infinite;
+  position: relative;
+}
+
+.digital-grid-animation::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  pointer-events: none;
 }
 
 @keyframes moveGrid {
@@ -275,6 +284,22 @@
     background-position: 0 0;
   }
   100% {
-    background-position: 20px 20px;
+    background-position: 30px 30px;
+  }
+}
+
+/* Add smooth transitions */
+.fade-in-visible {
+  animation: smoothFadeIn 0.8s ease-out forwards;
+}
+
+@keyframes smoothFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
@@ -11,11 +12,15 @@ export default function DigitalAnimation() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Set canvas size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Set canvas size and scaling for retina displays
+    const scale = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * scale;
+    canvas.height = window.innerHeight * scale;
+    ctx.scale(scale, scale);
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
     
-    // Particle array
+    // Enhanced particle system
     const particles: Array<{
       x: number;
       y: number;
@@ -23,18 +28,24 @@ export default function DigitalAnimation() {
       speedX: number;
       speedY: number;
       color: string;
+      alpha: number;
+      pulse: number;
     }> = [];
+    
+    // Mouse interaction
+    let mouseX = 0;
+    let mouseY = 0;
+    canvas.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
     
     // Check if mobile
     const isMobile = () => window.innerWidth < 768;
     
-    // Create particles
     function createParticles() {
-      // Clear existing particles
       particles.length = 0;
-      
-      // Determine count based on device
-      const count = isMobile() ? 30 : 80;
+      const count = isMobile() ? 40 : 100;
       
       for (let i = 0; i < count; i++) {
         particles.push({
@@ -43,49 +54,68 @@ export default function DigitalAnimation() {
           size: Math.random() * (isMobile() ? 4 : 3) + (isMobile() ? 1.5 : 1),
           speedX: Math.random() * 1 - 0.5,
           speedY: Math.random() * 1 - 0.5,
-          color: `rgba(0, 120, 255, ${Math.random() * 0.5 + (isMobile() ? 0.3 : 0.2)})`
+          color: `hsl(${Math.random() * 60 + 200}, 70%, 50%)`,
+          alpha: Math.random() * 0.5 + 0.2,
+          pulse: Math.random() * Math.PI
         });
       }
     }
     
-    // Update particles
     function updateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
       for (let i = 0; i < particles.length; i++) {
-        // Move particle
-        particles[i].x += particles[i].speedX;
-        particles[i].y += particles[i].speedY;
+        const p = particles[i];
         
-        // Wrap around edges
-        if (particles[i].x < 0) particles[i].x = canvas.width;
-        if (particles[i].x > canvas.width) particles[i].x = 0;
-        if (particles[i].y < 0) particles[i].y = canvas.height;
-        if (particles[i].y > canvas.height) particles[i].y = 0;
+        // Update position with mouse influence
+        const dx = mouseX - p.x;
+        const dy = mouseY - p.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // Draw particle
-        ctx.fillStyle = particles[i].color;
+        if (distance < 100) {
+          p.speedX += dx * 0.0001;
+          p.speedY += dy * 0.0001;
+        }
+        
+        p.x += p.speedX;
+        p.y += p.speedY;
+        
+        // Add pulsing effect
+        p.pulse += 0.02;
+        const pulseFactor = Math.sin(p.pulse) * 0.5 + 0.5;
+        
+        // Boundary check
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+        
+        // Draw particle with glow effect
+        ctx.save();
+        ctx.globalAlpha = p.alpha * pulseFactor;
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 15;
         ctx.beginPath();
-        ctx.arc(particles[i].x, particles[i].y, particles[i].size, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * pulseFactor, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
       }
     }
     
-    // Connect particles with lines
     function connectParticles() {
       const maxDistance = isMobile() ? 120 : 150;
-      const step = isMobile() ? 2 : 1; // Skip particles on mobile
       
-      for (let a = 0; a < particles.length; a += step) {
-        for (let b = a; b < particles.length; b += step) {
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a; b < particles.length; b++) {
           const dx = particles[a].x - particles[b].x;
           const dy = particles[a].y - particles[b].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
           if (distance < maxDistance) {
-            const opacity = 1 - distance / maxDistance;
-            const opacityFactor = isMobile() ? 0.3 : 0.2;
-            
-            ctx.strokeStyle = `rgba(0, 120, 255, ${opacity * opacityFactor})`;
-            ctx.lineWidth = isMobile() ? 1.5 : 1;
+            const opacity = (1 - distance / maxDistance) * 0.3;
+            ctx.strokeStyle = `hsla(210, 70%, 50%, ${opacity})`;
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(particles[a].x, particles[a].y);
             ctx.lineTo(particles[b].x, particles[b].y);
@@ -95,44 +125,28 @@ export default function DigitalAnimation() {
       }
     }
     
-    // Animation loop
     function animate() {
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Update and connect particles
       updateParticles();
       connectParticles();
-      
-      // Continue animation
       requestAnimationFrame(animate);
     }
     
-    // Initialize particles
     createParticles();
-    
-    // Start animation
     animate();
     
-    // Handle window resize
-    let resizeTimer: number | null = null;
-    
-    function handleResize() {
-      // Update canvas size
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      
-      // Debounce particle recreation
-      if (resizeTimer) window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(createParticles, 300);
-    }
+    const handleResize = () => {
+      canvas.width = window.innerWidth * scale;
+      canvas.height = window.innerHeight * scale;
+      ctx.scale(scale, scale);
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      createParticles();
+    };
     
     window.addEventListener('resize', handleResize);
     
-    // Cleanup on unmount
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (resizeTimer) window.clearTimeout(resizeTimer);
     };
   }, []);
   
@@ -141,8 +155,8 @@ export default function DigitalAnimation() {
       ref={canvasRef}
       className="absolute inset-0 pointer-events-none z-0"
       initial={{ opacity: 0 }}
-      animate={{ opacity: 0.5 }}
-      transition={{ duration: 2 }}
+      animate={{ opacity: 0.8 }}
+      transition={{ duration: 1.5 }}
     />
   );
 }
